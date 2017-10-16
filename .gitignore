@@ -14,3 +14,5 @@
 ~*
 *.bak
 
+# executable
+*.exe
