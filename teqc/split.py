@@ -9,7 +9,7 @@ def main():
 ######### CHANGE THE START TIME NEXT LINE ###############
 #	sttime= 
 
-	sttime=datetime(2017,10,12,10,00,00)
+	sttime=datetime(2017,10,20,9,30,00)
 	for it in ofile:
 		print(it)
 		os.mkdir('../'+it[0])

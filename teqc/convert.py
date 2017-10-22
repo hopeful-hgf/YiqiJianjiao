@@ -8,7 +8,9 @@ def main():
 	finally:
 		os.system("echo * > err.txt")
 	dirlist=os.listdir("../")
-	datafile=[it for it in dirlist if it!="teqc"]
+#	datafile=[it for it in dirlist if it!="teqc"]
+	datafile=[it for it in dirlist if not (it=="teqc" or it[0]=='.') or it[-1]=='/']
+
 
 	for it in datafile:
 		os.system('echo -e \"'+r'\r\n\r\n' + it + r'\r\n" >> err.txt') 
