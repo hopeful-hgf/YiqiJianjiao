@@ -16,3 +16,11 @@
 
 # executable
 *.exe
+*.x
+*.a
+
+# vscode derectory
+*~
+**/.vscode/**
+**.vscode/**
+**/__pycache__/**
