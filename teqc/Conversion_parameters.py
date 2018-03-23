@@ -3,7 +3,7 @@
 
 from math import cos, degrees, radians, sin, sqrt, tan
 
-from scipy.optimize import leastsq, minimize
+from scipy.optimize import leastsq, minimize, least_squares
 
 shcs = [[60000.0000, -22000.0000],
         [54000.0000, 2500.0000],
@@ -196,32 +196,62 @@ if __name__ == "__main__":
     L = np.array(L)
     B = np.array(B)
     x = np.mat(B).I * np.mat(L).T
+    # x = np.mat(L).T/np.mat(B)
 
     shcs1 = np.mat(B) * x
-    print(shcs1)
+    # print(shcs1)
     # delt = shcs - shcs1.reshape(9, 2)
 
     # scipy.optimize.leastsq
     def func(p, x):
         tx, ty, k, s, c = p
+        # tx, ty, k, s = p
+
         x0, y0 = x
+        # y0, x0 = x
+
         x1 = tx + k * x0 + c * x0 + s * y0
         y1 = ty + k * y0 + c * y0 - s * x0
+        # x1 = tx + k * x0 + s * y0
+        # y1 = ty + k * y0 + - s * x0
+
         ret = np.array((x1, y1))
         return ret
 
     def error(p, x, y):
         rt = func(p, x) - y
-        rt1 = np.abs(rt).mean()
+        rt1 = np.abs(rt).sum(axis=0)
+        # print(rt1)
         return rt1
 
-    p0 = [-3457089, -129, 1, 0, 1]
+    # p0 = [-3457089, -129, 1, 0, 1]
+    p0 = [-0, 0, 1, 0, 1]
+
     x = np.array(xy84).transpose()
     y = np.array(shcs).transpose()
     # x=np.array(xy84)
     # y=np.array(shcs)
-    # ppp = leastsq(error, p0, args=(x, y, 'oo'),method = 'Nelder-Mead')
-    ppp = minimize(error, p0, method='Nelder-Mead', args=(x, y))
+    # x1 = np.asarray(x.T)
+    # y1 = np.asarray(y.T)
+    # ppp = least_squares(error, p0, args=(x, y), xtol=1e-11)
+    # ppp = leastsq(error, p0, args=(x1, y1), xtol=1e-11)
+    ppp = leastsq(error, p0, args=(x, y), xtol=1e-11, ftol=1e-8,)
+
+    # ppp = minimize(error, p0, method='Nelder-Mead', args=(x, y))
 
     print(ppp)
     # print(xy84)
+    alfa0 = ppp[0][-2:]
+    one = alfa0[0] * alfa0[0] + alfa0[1] * alfa0[1]
+    print(one)
+#
+    ans = func(ppp[0], x).T
+    print(ans)
+
+    print(np.max(np.abs(np.array(shcs) - ans)))
+
+    # with open('out.txt') as data:
+        # line = data.readline()
+        # while(line):
+            # iterm = line.split(',')
+            # pn = iterm[0]
