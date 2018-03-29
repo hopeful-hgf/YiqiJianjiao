@@ -36,11 +36,15 @@ e = sqrt((a * a - b * b) / (a * a))
 def lb2xy(lb, l0):
     '''
     大地经纬度lb -> 高斯平面 x,y
-    :param lb: 大地经纬度lb
+    :param lb: 大地经纬度lb 度分秒
     :return: xy,子午线收敛角 gamma,投影长度比 m
     '''
-    l = radians(lb[0] - l0)
-    b = radians(lb[1])
+    # for iterm in lb:
+    # iterm = dmmss2d(iterm) #bug. iterm not change after operation
+    lbd = [dmmss2d(it) for it in lb]
+    l0 = dmmss2d(l0)
+    l = radians(lbd[0] - l0)
+    b = radians(lbd[1])
     n = a / (sqrt(1 - e * e * sin(b) * sin(b)))
     nn = sqrt(e * e / (1 - e * e)) * cos(b)
     t = tan(b)
@@ -140,7 +144,7 @@ def deg2dmmss(deg):
     d = int(deg)
     m = int((deg - d) * 60)
     s = (((deg - d) * 60 - m) * 60)
-    return d * 10000 + m * 100 + s
+    return d + m / 100 + s / 10000
 
 
 def para(f, t):
@@ -158,20 +162,18 @@ def para(f, t):
 
 if __name__ == "__main__":
 
-    l0 = 121.465
+    l0 = 121.2754
     xy84 = []
-    wgsd = []
-    for item in wgs84:
-        wgsd.append([dmmss2d(item[1]), dmmss2d(item[0])])
-    for it in wgsd:
+    # wgsd = []
+    for it in wgs84:
+        it.reverse()
         xy84.append(lb2xy(it, l0))
-
+        it.reverse()
     lb = []
     for it in xy84:
         lb.append(xy2lb(it, l0))
     # print(lb)s
 
-    print(dmmss2d(121.275570169))
     import numpy as np
 
     # print(np.array(lb) - np.array(wgsd))
@@ -191,16 +193,6 @@ if __name__ == "__main__":
 
     # delt = np.array(dist1) - np.array(dist2)
     # print(delt)
-
-    L, B = para(xy84, shcs)
-    L = np.array(L)
-    B = np.array(B)
-    x = np.mat(B).I * np.mat(L).T
-    # x = np.mat(L).T/np.mat(B)
-
-    shcs1 = np.mat(B) * x
-    # print(shcs1)
-    # delt = shcs - shcs1.reshape(9, 2)
 
     # scipy.optimize.leastsq
     def func(p, x):
@@ -224,8 +216,8 @@ if __name__ == "__main__":
         # print(rt1)
         return rt1
 
-    # p0 = [-3457089, -129, 1, 0, 1]
     p0 = [-0, 0, 1, 0, 1]
+    # p0 = [-3457089, -129, 1, 0, 1]
 
     x = np.array(xy84).transpose()
     y = np.array(shcs).transpose()
@@ -250,8 +242,25 @@ if __name__ == "__main__":
 
     print(np.max(np.abs(np.array(shcs) - ans)))
 
-    # with open('out.txt') as data:
-        # line = data.readline()
-        # while(line):
-            # iterm = line.split(',')
-            # pn = iterm[0]
+    with open('out.txt') as data, open('xy.txt', 'w') as wf:
+        line = data.readline()
+        pn = []
+        wgs84 = []
+        while(line):
+            iterm = line.split(',')
+            if (len(iterm) > 1):
+                pn.append((iterm[0]))
+                lat = float(iterm[1])
+                lon = float(iterm[2])
+                wgs84.append([lon, lat])
+            line = data.readline()
+        print(wgs84)
+        wgs84 = np.array(wgs84)
+        # for it in wgs84:
+        # it.reverse()
+        print(wgs84)
+        wgsxy = [lb2xy(it, l0) for it in wgs84]
+        ans = [list(func(ppp[0], it).T) for it in wgsxy]
+        print(list(ans))
+        for i in range(len(pn)):
+            wf.write(pn[i] + ',\t' + str(ans[i][0]) + ',\t'+str(ans[i][1]) + '\n')
